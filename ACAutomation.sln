@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31702.278
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ACAutomation", "ACAutomation\ACAutomation.csproj", "{808C2168-0641-45FF-9ECF-51D029F5DFC2}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{808C2168-0641-45FF-9ECF-51D029F5DFC2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{808C2168-0641-45FF-9ECF-51D029F5DFC2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{808C2168-0641-45FF-9ECF-51D029F5DFC2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{808C2168-0641-45FF-9ECF-51D029F5DFC2}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {D2381843-4C23-43FA-8719-D2C83EF0D597}
+	EndGlobalSection
+EndGlobal
