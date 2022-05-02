@@ -56,7 +56,11 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AddAddressTests.cs" />
     <Compile Include="LoginTests.cs" />
+    <Compile Include="PageObjects\AddAddressPage.cs" />
+    <Compile Include="PageObjects\AddressesPage.cs" />
+    <Compile Include="PageObjects\HomePage.cs" />
     <Compile Include="PageObjects\LoginPage.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
