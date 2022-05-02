@@ -39,10 +39,15 @@ namespace ACAutomation
         {
             loginPage.LoginApplication("test@test.testWrong", "test");
 
-            var expectedResult = "Bad email or password.";
-            var actualResult = driver.FindElement(By.CssSelector(".alert-notice")).Text;
+            Assert.AreEqual("Bad email or password.", loginPage.ErrorMessage);
+        }
 
-            Assert.AreEqual(expectedResult, actualResult);
+        [TestMethod]
+        public void User_Should_Fail_Login_With_WrongPassword()
+        {
+            loginPage.LoginApplication("test@test.test", "testWrong");
+
+            Assert.AreEqual("Bad email or password.", loginPage.ErrorMessage);
         }
 
         [TestCleanup]
