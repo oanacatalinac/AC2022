@@ -19,11 +19,13 @@ namespace ACAutomation.PageObjects
 
         private IWebElement LblErrorMessage => driver.FindElement(By.CssSelector(".alert-notice"));
 
-        public void LoginApplication(string username, string password)
+        public HomePage LoginApplication(string username, string password)
         {
             TxtEmail.SendKeys(username);
             TxtPassword.SendKeys(password);
             BtnLogin.Click();
+
+            return new HomePage(driver);
         }
 
         public string ErrorMessage => LblErrorMessage.Text;

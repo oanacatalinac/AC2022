@@ -13,9 +13,11 @@ namespace ACAutomation.PageObjects
 
         private IWebElement BtnAddresses => driver.FindElement(By.CssSelector("a[data-test=addresses]"));
 
-        public void NavigateToAddressesPage()
+        public AddressesPage NavigateToAddressesPage()
         {
             BtnAddresses.Click();
+
+            return new AddressesPage(driver);
         }
     }
 }

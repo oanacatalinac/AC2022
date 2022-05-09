@@ -1,4 +1,5 @@
 ﻿using ACAutomation.PageObjects;
+using ACAutomation.PageObjects.InputDataBO;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
@@ -41,7 +42,10 @@ namespace ACAutomation
         [TestMethod]
         public void User_Should_Add_Address_Successfully()
         {
-            addAddressPage.AddAddress("AC FN", "AC LN", "AC address1", "AC city", "AC zipcode");
+            addAddressPage.AddAddress(new AddAddressBO());
+
+            //var addressDetailsPage = new AddressDetailsPage(driver);
+            //Assert.AreEqual("Message to be added", addressDetailsPage.LblSuccess.Text);
         }
 
         [TestCleanup]
