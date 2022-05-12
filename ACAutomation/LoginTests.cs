@@ -2,7 +2,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
-using System.Threading;
+using System;
 
 namespace ACAutomation
 {
@@ -23,7 +23,9 @@ namespace ACAutomation
 
             var btnSignIn = driver.FindElement(By.Id("sign-in"));
             btnSignIn.Click();
-            Thread.Sleep(2000); // to be changed, it is not a best practice to use it
+
+            // implicit wait
+            driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(1);
         }
 
         [TestMethod]

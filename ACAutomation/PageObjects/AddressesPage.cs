@@ -1,4 +1,5 @@
-﻿using OpenQA.Selenium;
+﻿using ACAutomation.Helpers;
+using OpenQA.Selenium;
 
 namespace ACAutomation.PageObjects
 {
@@ -11,10 +12,13 @@ namespace ACAutomation.PageObjects
             driver = browser;
         }
 
-        private IWebElement BtnNewAddress => driver.FindElement(By.CssSelector("a[data-test=create]"));
+        private By NewAddress = By.CssSelector("a[data-test=create]");
+        private IWebElement BtnNewAddress => driver.FindElement(NewAddress);
 
         public AddAddressPage NavigateToAddAddressPage()
         {
+            WaitHelpers.WaitForElementToBeVisible(driver, NewAddress);
+
             BtnNewAddress.Click();
             return new AddAddressPage(driver);
         }

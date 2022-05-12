@@ -3,7 +3,6 @@ using ACAutomation.PageObjects.InputDataBO;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
-using System.Threading;
 
 namespace ACAutomation
 {
@@ -24,7 +23,6 @@ namespace ACAutomation
 
             var btnSignIn = driver.FindElement(By.Id("sign-in"));
             btnSignIn.Click();
-            Thread.Sleep(2000);
 
             var loginPage = new LoginPage(driver);
             loginPage.LoginApplication("test@test.test", "test");
@@ -33,10 +31,8 @@ namespace ACAutomation
             homePage.NavigateToAddressesPage();
 
             var addressesPage = new AddressesPage(driver);
-            Thread.Sleep(2000);
 
             addAddressPage = addressesPage.NavigateToAddAddressPage();
-            Thread.Sleep(2000);
         }
 
         [TestMethod]

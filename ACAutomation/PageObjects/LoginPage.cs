@@ -1,4 +1,5 @@
-﻿using OpenQA.Selenium;
+﻿using ACAutomation.Helpers;
+using OpenQA.Selenium;
 
 namespace ACAutomation.PageObjects
 {
@@ -11,16 +12,22 @@ namespace ACAutomation.PageObjects
             driver = browser;
         }
 
-        private IWebElement TxtEmail => driver.FindElement(By.Id("session_email"));
+        private By Email = By.Id("session_email");
+        private IWebElement TxtEmail => driver.FindElement(Email);
 
-        private IWebElement TxtPassword => driver.FindElement(By.Id("session_password"));
+        private By Password = By.Id("session_password");
+        private IWebElement TxtPassword => driver.FindElement(Password);
 
-        private IWebElement BtnLogin => driver.FindElement(By.Name("commit"));
+        private By Login = By.Name("commit");
+        private IWebElement BtnLogin => driver.FindElement(Login);
 
-        private IWebElement LblErrorMessage => driver.FindElement(By.CssSelector(".alert-notice"));
+        private By ErrorMessageDisplayed = By.CssSelector(".alert-notice");
+        private IWebElement LblErrorMessage => driver.FindElement(ErrorMessageDisplayed);
 
         public HomePage LoginApplication(string username, string password)
         {
+            WaitHelpers.WaitForElementToBeVisible(driver, Email);
+
             TxtEmail.SendKeys(username);
             TxtPassword.SendKeys(password);
             BtnLogin.Click();
