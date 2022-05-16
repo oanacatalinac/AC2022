@@ -6,11 +6,11 @@ using System.Collections.Generic;
 
 namespace ACAutomation.PageObjects
 {
-    public class AddAddressPage
+    public class AddEditAddressPage
     {
         private IWebDriver driver;
 
-        public AddAddressPage(IWebDriver browser)
+        public AddEditAddressPage(IWebDriver browser)
         {
             driver = browser;
         }
@@ -36,41 +36,39 @@ namespace ACAutomation.PageObjects
         private By Country = By.CssSelector("input[type=radio]");
         private IList<IWebElement> LstCountry => driver.FindElements(Country);
 
-        private By Birthday = By.Id("address_birthday");
-        private IWebElement TxtBirthday => driver.FindElement(Birthday);
-
         private By Color = By.Id("address_color");
         private IWebElement ClColor => driver.FindElement(Color);
 
-        private By CreateAddress = By.XPath("//input[@value='Create Address']");
-        private IWebElement BtnCreateAddress => driver.FindElement(CreateAddress);
+        private By Submit = By.XPath("//input[@data-test='submit']");
+        private IWebElement BtnSubmit => driver.FindElement(Submit);
 
-        public AddressDetailsPage AddAddress(AddAddressBO address)
+        public AddressDetailsPage AddEditAddress(AddAddressBO address)
         {
-            WaitHelpers.WaitForElementToBeVisible(driver, CreateAddress);
+            WaitHelpers.WaitForElementToBeVisible(driver, Submit);
 
-            TxtFirstName.SendKeys(address.TxtFirstName);
-            TxtLastName.SendKeys(address.TxtLastName);
-            TxtAddress1.SendKeys(address.TxtAddress1);
-            TxtCity.SendKeys(address.TxtCity);
+            TxtFirstName.Clear();
+            TxtFirstName.SendKeys(address.FirstName);
+            TxtLastName.Clear();
+            TxtLastName.SendKeys(address.LastName);
+            TxtAddress1.SendKeys(address.Address1);
+            TxtCity.Clear();
+            TxtCity.SendKeys(address.City);
 
             // select from drop-down
             var selectState = new SelectElement(DdlState);
-            selectState.SelectByText(address.TxtState);
+            selectState.SelectByText(address.State);
 
-            TxtZipCode.SendKeys(address.TxtZipCode);
+            TxtZipCode.SendKeys(address.ZipCode);
 
             // select radio button value -> country
             LstCountry[1].Click();
 
-            TxtBirthday.SendKeys(address.TxtBirthdate);
-
             // select color from color picker
             var js = (IJavaScriptExecutor)driver;
             // js.ExecuteScript(script, arguments);
-            js.ExecuteScript("arguments[0].setAttribute('value', arguments[1])", ClColor, address.TxtColor);
+            js.ExecuteScript("arguments[0].setAttribute('value', arguments[1])", ClColor, address.Color);
 
-            BtnCreateAddress.Click();
+            BtnSubmit.Click();
 
             return new AddressDetailsPage(driver);
         }

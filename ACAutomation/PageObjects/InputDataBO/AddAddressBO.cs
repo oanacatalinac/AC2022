@@ -2,13 +2,12 @@
 {
     public class AddAddressBO
     {
-        public string TxtFirstName = "AC FN";
-        public string TxtLastName = "AC LN";
-        public string TxtAddress1 = "AC address1";
-        public string TxtCity = "AC city";
-        public string TxtState = "Hawaii";
-        public string TxtZipCode = "AC zipcode";
-        public string TxtBirthdate = "11072000";
-        public string TxtColor = "#FF0000";
+        public string FirstName { get; set; } = "AC FN Default";
+        public string LastName { get; set; }
+        public string Address1 { get; set; }
+        public string City { get; set; }
+        public string State { get; set; }
+        public string ZipCode { get; set; }
+        public string Color { get; set; }
     }
 }
