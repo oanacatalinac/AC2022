@@ -410,3 +410,226 @@ At this point, we need to update our tests:
     }
 	
 ```
+
+### **Session 4 - 02.05.2022 - Refactor LoginTests and Add test for Adding new address**
+
+**Scope:** This session scope was to create a new test class for adding a new address and to keep the code clean.
+
+Let's start with the refactoring left:
+
+ **LoginPage.cs:**
+-	Change the methods for declaring the elements using Lambda expression.
+-	Rename the elements declaration to be more sugestive and to describe better what type of elements it’s used.
+-	Add a new element for the error message used in the User_Should_Fail_Login_With_WrongEmail test.
+
+A this point, the changes look like this:
+
+```csharp
+        private IWebElement TxtEmail => driver.FindElement(By.Id("session_email"));
+
+        private IWebElement TxtPassword => driver.FindElement(By.Id("session_password"));
+
+        private IWebElement BtnLogin => driver.FindElement(By.Name("commit"));
+
+        private IWebElement LblErrorMessage => driver.FindElement(By.CssSelector(".alert-notice"));
+
+        public void LoginApplication(string username, string password)
+        {
+            TxtEmail.SendKeys(username);
+            TxtPassword.SendKeys(password);
+            BtnLogin.Click();
+        }
+
+        public string ErrorMessage => LblErrorMessage.Text;
+```
+
+**LoginTests.cs**
+
+-	In this class only the assert has to be changed.
+
+```csharp
+        [TestMethod]
+        public void User_Should_Fail_Login_With_WrongEmail()
+        {
+            loginPage.LoginApplication("test@test.testWrong", "test");
+
+            Assert.AreEqual("Bad email or password.", loginPage.ErrorMessage);
+        }
+```
+
+Now let's write another login test with correct email and wrong password:
+
+```csharp
+        [TestMethod]
+        public void User_Should_Fail_Login_With_WrongPassword()
+        {
+            loginPage.LoginApplication("test@test.test", "testWrong");
+
+            Assert.AreEqual("Bad email or password.", loginPage.ErrorMessage);
+        }
+```
+<br>
+
+**Now, moving to the second part of the session, let's write the test for adding a new address**
+
+
+
+In order to add a new address, we will need a write code for the next steps:
+
+1. Open the browser
+2. Maximize the page
+3. Navigate to the application URL
+4. Click Sign in button (NavigateToLoginPage method)
+5. Fill user email and password, then click Sign in button (LoginApplication method)
+6. Navigate to addresses page
+7. Navigate to add address page
+8. Complete the form with mandatory fields and click Save button
+9. Assert that the success message is shown
+
+At step 5, use login actions (fill user email and password, click Sign in button) that is in LoginPage.cs:
+
+```csharp
+        public void LoginApplication(string username, string password)
+        {
+            TxtEmail.SendKeys(username);
+            TxtPassword.SendKeys(password);
+            BtnLogin.Click();
+        }
+```
+
+<br>
+
+In order to navigate to addresses page, we need to create a page object HomePage.cs that contains elements and method for this page:
+
+```csharp
+     public class HomePage
+        {
+            private IWebDriver driver;
+
+            public HomePage(IWebDriver browser)
+            {
+                driver = browser;
+            }
+
+            private IWebElement BtnAddresses => driver.FindElement(By.CssSelector("a[data-test=addresses]"));
+
+            public void NavigateToAddressesPage()
+            {
+                BtnAddresses.Click();
+            }
+         }
+```
+
+<br>
+
+Next step is to navigate to add address page. For this, we need another page object AddressesPage.cs which contains New Address button declaration and method to click on the element:
+
+```csharp
+      public class AddressesPage
+        {
+            private IWebDriver driver;
+
+            public AddressesPage(IWebDriver browser)
+            {
+                driver = browser;
+            }
+
+            private IWebElement BtnNewAddress => driver.FindElement(By.CssSelector("a[data-test=create]"));
+
+            public AddAddressPage NavigateToAddAddressPage()
+            {
+                BtnNewAddress.Click();
+                return new AddAddressPage(driver);
+            }
+        }
+```
+
+<br>
+
+For step 8 (Complete the form with mandatory fields and click Save button), we will create a page object that contains the elements for the add address page: AddAddressPage.cs. We need to add the objects that we use in our script in this class: first name, last name, address, city, zip code, create address button. Also, create a method to add the address. Our add address page will look like this:
+
+```csharp
+        public class AddAddressPage
+            {
+                private IWebDriver driver;
+
+                public AddAddressPage(IWebDriver browser)
+                {
+                    driver = browser;
+                }
+
+                private IWebElement TxtFirstName => driver.FindElement(By.Id("address_first_name"));
+
+                private IWebElement TxtLastName => driver.FindElement(By.CssSelector("input[name='address[last_name]']"));
+
+                private IWebElement TxtAddress1 => driver.FindElement(By.XPath("//input[@name='address[address1]']"));
+
+                private IWebElement TxtCity => driver.FindElement(By.Id("address_city"));
+
+                private IWebElement TxtZipCode => driver.FindElement(By.Id("address_zip_code"));
+
+                private IWebElement BtnCreateAddress => driver.FindElement(By.XPath("//input[@value='Create Address']"));
+
+                public void AddAddress(string firstName, string lastName, string address1, string city, string zipCode)
+                {
+                    TxtFirstName.SendKeys(firstName);
+                    TxtLastName.SendKeys(lastName);
+                    TxtAddress1.SendKeys(address1);
+                    TxtCity.SendKeys(city);
+                    TxtZipCode.SendKeys(zipCode);
+                    BtnCreateAddress.Click();
+                }
+            }
+```
+
+<br>
+
+Let's create class AddAddressTests.cs which will contain our test:
+
+```csharp
+        [TestClass]
+        public class AddAddressTests
+        {
+            private IWebDriver driver;
+            private AddAddressPage addAddressPage;
+
+            [TestInitialize]
+            public void TestInitialize()
+            {
+                driver = new ChromeDriver();
+
+                driver.Manage().Window.Maximize();
+
+                driver.Navigate().GoToUrl("http://a.testaddressbook.com/");
+
+                var btnSignIn = driver.FindElement(By.Id("sign-in"));
+                btnSignIn.Click();
+                Thread.Sleep(2000);
+
+                var loginPage = new LoginPage(driver);
+                loginPage.LoginApplication("test@test.test", "test");
+
+                var homePage = new HomePage(driver);
+                homePage.NavigateToAddressesPage();
+
+                var addressesPage = new AddressesPage(driver);
+                Thread.Sleep(2000);
+
+                addAddressPage = addressesPage.NavigateToAddAddressPage();
+                Thread.Sleep(2000);
+            }
+
+            [TestMethod]
+            public void User_Should_Add_Address_Successfully()
+            {
+                addAddressPage.AddAddress("AC FN", "AC LN", "AC address1", "AC city", "AC zipcode");
+            }
+
+            [TestCleanup]
+            public void TestCleanup()
+            {
+                driver.Quit();
+            }
+        }
+```
+
