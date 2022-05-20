@@ -633,3 +633,239 @@ Let's create class AddAddressTests.cs which will contain our test:
         }
 ```
 
+### **Session 5 - 09.05.2022 - Finish AddAddressTests, create BO class and change the wait strategy**
+
+**Scope:** This session scope was to finish the test for adding an address, to create a BO model and to replace the Thread.Sleep with efficient waits.
+
+Let's start with adding the elements left in the AddAddressPage. After that, complete the AddAddress method:
+
+```csharp
+        public class AddAddressPage
+        {
+            private IWebDriver driver;
+
+            public AddAddressPage(IWebDriver browser)
+            {
+                driver = browser;
+            }
+
+            private IWebElement TxtFirstName => driver.FindElement(By.Id("address_first_name"));
+
+            private IWebElement TxtLastName => driver.FindElement(By.CssSelector("input[name='address[last_name]']"));
+
+            private IWebElement TxtAddress1 => driver.FindElement(By.XPath("//input[@name='address[address1]']"));
+
+            private IWebElement TxtCity => driver.FindElement(By.Id("address_city"));
+
+            private IWebElement DdlState => driver.FindElement(By.Id("address_state"));
+
+            private IWebElement TxtZipCode => driver.FindElement(By.Id("address_zip_code"));
+
+            private IList<IWebElement> LstCountry => driver.FindElements(By.CssSelector("input[type=radio]"));
+
+            private IWebElement TxtBirthday => driver.FindElement(By.Id("address_birthday"));
+
+            private IWebElement ClColor => driver.FindElement(By.Id("address_color"));
+
+            private IWebElement BtnCreateAddress => driver.FindElement(By.XPath("//input[@value='Create Address']"));
+            
+            public void AddAddress(string firstname, string lastName, string address1, string city, string zipCode)
+            {
+                TxtFirstName.SendKeys(firstName);
+                TxtLastName.SendKeys(lastName);
+                TxtAddress1.SendKeys(address1);
+                TxtCity.SendKeys(city);
+
+                // select from drop-down
+                var selectState = new SelectElement(DdlState);
+                selectState.SelectByText("Hawaii");
+
+                TxtZipCode.SendKeys(zipCode);
+
+                // select radio button value -> country
+                LstCountry[1].Click();
+
+                TxtBirthday.SendKeys("15071999");
+
+                // select color from color picker
+                var js = (IJavaScriptExecutor)driver;
+                // js.ExecuteScript(script, arguments);
+                js.ExecuteScript("arguments[0].setAttribute('value', arguments[1])", ClColor, "#FF0000");
+
+                BtnCreateAddress.Click();
+            }
+        }
+```
+
+<br>
+
+Find Elements command takes in By object as the parameter and returns a list of web elements. It returns an empty list if there are no elements found using the given locator strategy and locator value. Below is the syntax of find elements command. private IList LstCountry => driver.FindElements(By.CssSelector("input[type=radio]"));
+
+The 'Select' class in Selenium WebDriver is used for selecting and deselecting option in a dropdown. The objects of Select type can be initialized by passing the dropdown webElement as parameter to its constructor. var selectState = new SelectElement(DdlState); selectState.SelectByText("Hawaii");
+
+JavaScriptExecutor is an Interface that helps to execute JavaScript through Selenium Webdriver.
+
+Syntax:
+```csharp
+        var js = (IJavaScriptExecutor) driver; 
+        js.ExecuteScript(Script,Arguments);
+```
+
+Script – This is the JavaScript that needs to execute.
+
+Arguments – It is the arguments to the script. It's optional.
+
+```csharp
+        var js = (IJavaScriptExecutor) driver;
+        js.ExecuteScript("arguments[0].setAttribute('value', arguments[1])", ClColor, "#FF0000");
+```
+
+Now, let's create another class because, after pressing on the add address button, we will be redirected to another page: AddressDetailsPage.cs.
+
+
+```csharp
+        namespace ACAutomation.PageObjects
+        {
+            public class AddressDetailsPage
+            {
+                private IWebDriver driver;
+
+                public AddressDetailsPage(IWebDriver browser)
+                {
+                    driver = browser;
+                }
+
+                // locator to be added when "add" functionality will work
+                public IWebElement LblSuccess => driver.FindElement(By.Id(""));
+            }
+        }
+```
+
+In the AddAddressPage, let's change the way of navigating to the AddressDetailsPage after adding the address:
+
+```csharp
+        public AddressDetailsPage AddAddress(string firstname, string lastName, string address1, string city, string zipCode)
+        {
+            ....
+            return new AddressDetailsPage(driver);
+        }
+```
+
+We need to also modify in the other classes the way of navigating to the other pages:
+
+```csharp
+        public AddressesPage NavigateToAddressesPage()
+        {
+            BtnAddresses.Click();
+
+            return new AddressesPage(driver);
+        }
+```
+
+```csharp
+        public HomePage LoginApplication(string username, string password)
+        {
+            TxtEmail.SendKeys(username);
+            TxtPassword.SendKeys(password);
+            BtnLogin.Click();
+
+            return new HomePage(driver);
+        }
+```
+<br>
+
+***Parametrize AddAddress method in an efficient way***
+
+To parametrize AddAddress method in an efficient way, we can create a business object class called AddAddressBO.cs which will contain the objects needed in the process of adding an address:
+
+```csharp
+        public class AddAddressBO
+        {
+            public string TxtFirstName = "AC FN";
+            public string TxtLastName = "AC LN";
+            public string TxtAddress1 = "AC address1";
+            public string TxtCity = "AC city";
+            public string TxtState = "Hawaii";
+            public string TxtZipCode = "AC zipcode";
+            public string TxtBirthdate = "11072000";
+            public string TxtColor = "#FF0000";
+        }
+```
+
+Then, use it in the AddAddress method as a parameter and to access its properties:
+
+```csharp
+        public AddressDetailsPage AddAddress(AddAddressBO address)
+        {
+            TxtFirstName.SendKeys(address.TxtFirstName);
+            TxtLastName.SendKeys(address.TxtLastName);
+            ... and so on
+        }
+```
+
+```csharp
+        [TestMethod]
+        public void User_Should_Add_Address_Successfully()
+        {
+            addAddressPage.AddAddress(new AddAddressBO());
+
+            //var addressDetailsPage = new AddressDetailsPage(driver);
+            //Assert.AreEqual("Message to be added when the site works", addressDetailsPage.LblSuccess.Text);
+        }
+```
+
+<br>
+
+***Wait strategy***
+
+There are explicit and implicit waits in Selenium Web Driver. Waiting is having the automated task execution elapse a certain amount of time before continuing with the next step.
+
+You should choose to use Explicit or Implicit Waits.
+
+**• Thread.Sleep**
+
+In particular, this pattern of sleep is an example of explicit waits. So this isn’t actually a feature of Selenium WebDriver, it’s a common feature in most programming languages though.
+
+Thread.Sleep() does exactly what you think it does, it sleeps the thread.
+
+Example:
+
+```csharp
+        Thread.Sleep(2000);
+```
+Warning! Using Thread.Sleep() can leave to random failures (server is sometimes slow), you don't have full control of the test and the test could take longer than it should. It is a good practice to use other types of waits.
+
+**• Implicit Wait**
+
+WebDriver will poll the DOM for a certain amount of time when trying to find an element or elements if they are not immediately available
+
+Example:
+```csharp
+         driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(1);
+```
+• Explicit Wait - Wait for a certain condition to occur before proceeding further in the code
+
+In practice, we recommend that you use Web Driver Wait in combination with methods of the Expected Conditions class that reduce the wait. If the element appeared earlier than the time specified during Web Driver wait initialization, Selenium will not wait but will continue the test execution.
+
+Example 1:
+```csharp
+         var wait = new WebDriverWait(driver, TimeSpan.FromSeconds(2));
+         wait.Until(ExpectedConditions.ElementIsVisible(firstName));
+```
+Example 2:
+
+```csharp
+        public AddAdressPage(IWebDriver browser)
+        {
+            driver = browser;
+            var wait = new WebDriverWait(driver, TimeSpan.FromSeconds(2));
+            wait.Until(ExpectedConditions.ElementIsVisible(FirstName));
+        }
+
+        private By FirstName = By.Id("address_first_name");
+        private IWebElement TxtFirstName => driver.FindElement(FirstName);
+```
+
+<br>
+
+**NOTE:** Check the commit "Changed the way of using waits." to see the changes made in the tests for waiting the elements, the package instaled, and the WaitHelpers.cs
