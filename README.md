@@ -869,3 +869,281 @@ Example 2:
 <br>
 
 **NOTE:** Check the commit "Changed the way of using waits." to see the changes made in the tests for waiting the elements, the package instaled, and the WaitHelpers.cs
+
+### **Session 6 - 16.05.2022 - Work with grids. Write test for Edit Address functionality**
+
+**Scope:** This session scope was to handle grid in our automation script. At this point, we have tests for the Login and for Add new address functionalities, but the application has also other functionalities implemented, like: edit an existing address and delete address. This can be done in the Addresses page. Within this page we have a grid that contains a list of addresses(table row > tr) and each address contains it's details(table data > td) and the possibility to view/edit/delete it.
+
+- Today we will create a test for editing an existing address. Given that the add new address flow is malfunctioning, it would be a shame to delete the data left in the application. (Eventually we will handle the delete flow next session, but without confirming the actual deletion, upon the confirmation we will select the cancel option, but we will learn how to interact with browser alerts).
+- Concerning the edit address flow, we need to prepare our ground a bit, so first we will refactor a bit AddAddressBO.cs. This way it will be easier for us to use the Business Object later on when editing an address.
+
+After making the changes the **AddAddressBO.cs** will look like this:
+
+```csharp
+        public class AddAddressBO
+        {
+            public string FirstName { get; set; } = "AC FN Default";
+            public string LastName { get; set; }
+            public string Address1 { get; set; }
+            public string City { get; set; }
+            public string State { get; set; }
+            public string ZipCode { get; set; }
+            public string Color { get; set; }
+        }
+```
+<br>
+
+Let’s refactor also the Add Address test:
+
+```csharp
+        [TestMethod]
+        public void User_Should_Add_Address_Successfully()
+        {
+            var inputData = new AddAddressBO
+            {
+                LastName = "AC LN",
+                Address1 = "AC address1",
+                City = "AC city",
+                State = "Hawaii",
+                ZipCode = "AC zipcode",
+                Color = "#FF0000"
+            };
+
+            addEditAddressPage = addressesPage.NavigateToAddAddressPage();
+            var addressDetailsPage = addEditAddressPage.AddEditAddress(inputData);
+
+            //Assert.AreEqual("Message to be added", addressDetailsPage.LblSuccess.Text);
+        }
+```
+<br>
+
+We also need to adapt a little the **[TestInitialize]** so we can use it in both tests (adding and editing an address).
+
+```csharp
+        [TestClass]
+        public class AddAddressTests
+        {
+            private IWebDriver driver;
+            private AddAddressPage addAddressPage;
+            private AddressesPage addressesPage;
+
+            [TestInitialize]
+            public void TestInitialize()
+            {
+                driver = new ChromeDriver();
+
+                driver.Manage().Window.Maximize();
+
+                driver.Navigate().GoToUrl("http://a.testaddressbook.com/");
+
+                var btnSignIn = driver.FindElement(By.Id("sign-in"));
+                btnSignIn.Click();
+
+                var loginPage = new LoginPage(driver);
+                var homePage = loginPage.LoginApplication("test@test.test", "test");
+                addressesPage = homePage.NavigateToAddressesPage();   
+            }
+
+```
+<br>
+
+**Let’s run the test in order to make sure we didn’t break anything.**
+
+Now we go to **AddressesPage.cs** and we have to add the web elements for the edit address button and the **NavigateToEditAddressesPage()** method.
+
+To improve the things, we can rename the AddAddress() method to AddEditAddress() and the AddAddressPage.cs to AddEditAddressPage.cs.
+
+```csharp
+        public class AddEditAddressPage
+        {
+            private IWebDriver driver;
+
+            public AddEditAddressPage(IWebDriver browser)
+            {
+                driver = browser;
+            }
+
+            private By FirstName = By.Id("address_first_name");
+            private IWebElement TxtFirstName => driver.FindElement(FirstName);
+
+            private By LastName = By.CssSelector("input[name='address[last_name]']");
+            private IWebElement TxtLastName => driver.FindElement(LastName);
+
+            private By Address1 = By.XPath("//input[@name='address[address1]']");
+            private IWebElement TxtAddress1 => driver.FindElement(Address1);
+
+            private By City = By.Id("address_city");
+            private IWebElement TxtCity => driver.FindElement(City);
+
+            private By State = By.Id("address_state");
+            private IWebElement DdlState => driver.FindElement(State);
+
+            private By ZipCode = By.Id("address_zip_code");
+            private IWebElement TxtZipCode => driver.FindElement(ZipCode);
+
+            private By Country = By.CssSelector("input[type=radio]");
+            private IList<IWebElement> LstCountry => driver.FindElements(Country);
+
+            private By Color = By.Id("address_color");
+            private IWebElement ClColor => driver.FindElement(Color);
+
+            private By Submit = By.XPath("//input[@data-test='submit']");
+            private IWebElement BtnSubmit => driver.FindElement(Submit);
+
+            public AddressDetailsPage AddEditAddress(AddAddressBO address)
+            {
+                WaitHelpers.WaitForElementToBeVisible(driver, Submit);
+
+                TxtFirstName.Clear();
+                TxtFirstName.SendKeys(address.FirstName);
+                TxtLastName.Clear();
+                TxtLastName.SendKeys(address.LastName);
+                TxtAddress1.SendKeys(address.Address1);
+                TxtCity.Clear();
+                TxtCity.SendKeys(address.City);
+
+                // select from drop-down
+                var selectState = new SelectElement(DdlState);
+                selectState.SelectByText(address.State);
+
+                TxtZipCode.SendKeys(address.ZipCode);
+
+                // select radio button value -> country
+                LstCountry[1].Click();
+
+                // select color from color picker
+                var js = (IJavaScriptExecutor)driver;
+                // js.ExecuteScript(script, arguments);
+                js.ExecuteScript("arguments[0].setAttribute('value', arguments[1])", ClColor, address.Color);
+
+                BtnSubmit.Click();
+
+                return new AddressDetailsPage(driver);
+            }
+        }
+```
+<br>
+
+Now we go to **AddAddressPage.cs** class to adapt a few things so that we can use the same elements in Adding and Editing tests.
+
+**One change we can make is for the CreateAddress button. If we inspect the CreateAddress and UpdateAddress buttons we can see that they have a few things in common. This means we can identify the two elements by the same XPath. Also we rename it to be more generic.**
+
+After making the changes the AddAdressPage.cs will look like this:
+
+```csharp
+ public class AddAddressPage
+    {
+        private IWebDriver driver;
+
+        public AddAddressPage(IWebDriver browser)
+        {
+            driver = browser;
+        }
+
+        private By FirstName = By.Id("address_first_name");
+        private IWebElement TxtFirstName => driver.FindElement(FirstName);
+
+        private By LastName = By.CssSelector("input[name='address[last_name]']");
+        private IWebElement TxtLastName => driver.FindElement(LastName);
+
+        private By Address1 = By.XPath("//input[@name='address[address1]']");
+        private IWebElement TxtAddress1 => driver.FindElement(Address1);
+
+        private By City = By.Id("address_city");
+        private IWebElement TxtCity => driver.FindElement(City);
+
+        private By State = By.Id("address_state");
+        private IWebElement DdlState => driver.FindElement(State);
+
+        private By ZipCode = By.Id("address_zip_code");
+        private IWebElement TxtZipCode => driver.FindElement(ZipCode);
+
+        private By Country = By.CssSelector("input[type=radio]");
+        private IList<IWebElement> LstCountry => driver.FindElements(Country);
+
+        private By Color = By.Id("address_color");
+        private IWebElement ClColor => driver.FindElement(Color);
+
+        private By Submit = By.XPath("//input[@data-test='submit']");
+        private IWebElement BtnSubmit => driver.FindElement(Submit);
+
+        public AddressDetailsPage AddEditAddress(AddAddressBO address)
+        {
+            WaitHelpers.WaitForElementToBeVisible(driver, Submit);
+
+            TxtFirstName.Clear();
+            TxtFirstName.SendKeys(address.FirstName);
+            TxtLastName.Clear();
+            TxtLastName.SendKeys(address.LastName);
+            TxtAddress1.SendKeys(address.Address1);
+            TxtCity.Clear();
+            TxtCity.SendKeys(address.City);
+
+            // select from drop-down
+            var selectState = new SelectElement(DdlState);
+            selectState.SelectByText(address.State);
+
+            TxtZipCode.SendKeys(address.ZipCode);
+
+            // select radio button value -> country
+            LstCountry[1].Click();
+
+            // select color from color picker
+            var js = (IJavaScriptExecutor)driver;
+            // js.ExecuteScript(script, arguments);
+            js.ExecuteScript("arguments[0].setAttribute('value', arguments[1])", ClColor, address.Color);
+
+            BtnSubmit.Click();
+
+            return new AddressDetailsPage(driver);
+        }
+    }
+```
+<br>
+
+Now, let’s add the test for editing an existing address. We will write the test in AddAddressTests so we can re-use the [TestInitialize] and [TestCleanup] that we have already wtitten.
+
+```csharp
+        [TestMethod]
+        public void User_Should_Edit_Address_Successfully()
+        {
+            var inputData = new AddAddressBO
+            {
+                FirstName = "AC First Name1 edit 1",
+                LastName = "AC edit",
+                Address1 = "AC address1 edit",
+                City = "AC city edit",
+                State = "Arizona",
+                ZipCode = "AC zipc",
+                Color = "#17A2B8"
+            };
+
+            addEditAddressPage = addressesPage.NavigateToEditAddressPage(inputData.FirstName);
+
+            var addressDetailsPage = addEditAddressPage.AddEditAddress(inputData);
+
+            Assert.AreEqual("Address was successfully updated.", addressDetailsPage.NoticeText);
+        }
+```
+<br>
+
+In order to make the assert, we need to add another element in the **AddressDetailsPage** class.
+
+```csharp
+        public class AddressDetailsPage
+        {
+            private IWebDriver driver;
+
+            public AddressDetailsPage(IWebDriver browser)
+            {
+                driver = browser;
+            }
+
+            // locator to be added when "add" functionality will work
+            public IWebElement LblSuccess => driver.FindElement(By.Id(""));
+
+            private IWebElement LblNotice => driver.FindElement(By.CssSelector("div[data-test=notice]"));
+
+            public string NoticeText => LblNotice.Text;
+        }
+```
