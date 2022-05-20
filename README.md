@@ -1147,3 +1147,33 @@ In order to make the assert, we need to add another element in the **AddressDeta
             public string NoticeText => LblNotice.Text;
         }
 ```
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+
+### **References**
+
+Getting started: 
+- https://www.automatetheplanet.com/getting-started-webdriver/ 
+- official documentation: https://www.selenium.dev/documentation/en/
+
+Page object model 
+- https://www.selenium.dev/documentation/en/guidelines_and_recommendations/page_object_models/ 
+- https://www.automatetheplanet.com/page-object-pattern/ 
+- https://huddle.eurostarsoftwaretesting.com/selenium-page-objects-page-object-model/ 
+- https://testautomationu.applitools.com/test-automation-framework-csharp/chapter3.html
+
+Waits: 
+- https://www.toolsqa.com/selenium-webdriver/c-sharp/advance-explicit-webdriver-waits-in-c/ 
+- https://www.lambdatest.com/blog/explicit-fluent-wait-in-selenium-c/ 
+- https://dzone.com/articles/selenium-c-tutorial-using-explicit-and-fluent-wait 
+- https://alexsiminiuc.medium.com/c-expected-conditions-are-deprecated-so-what-b451365adc24 
+- https://testautomationu.applitools.com/test-automation-framework-csharp/chapter12.html
+
+Others: 
+- Select dropdown - https://www.toolsqa.com/selenium-webdriver/c-sharp/dropdown-multiple-select-operations-in-c/ 
+- Javascript executor - https://www.c-sharpcorner.com/article/execution-of-selenium-web-driver-using-c-sharp-javascript/
