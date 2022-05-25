@@ -22,6 +22,11 @@ namespace ACAutomation.PageObjects
             .FirstOrDefault(element => element.Text.Contains(addressName))
             .FindElement(EditAddress);
 
+        private By DeleteAddress = By.CssSelector("a[data-test*=destroy]");
+        public IWebElement BtnDelete(string addressName) => LstAddresses
+            .FirstOrDefault(element => element.Text.Contains(addressName))
+            .FindElement(DeleteAddress);
+
         private By NewAddress = By.CssSelector("a[data-test=create]");
         private IWebElement BtnNewAddress => driver.FindElement(NewAddress);
 
@@ -39,6 +44,23 @@ namespace ACAutomation.PageObjects
 
             BtnEdit(addressName).Click();
             return new AddEditAddressPage(driver);
+        }
+
+        public void DestroyAddress(string addressName)
+        {
+            WaitHelpers.WaitForElementToBeVisible(driver, DeleteAddress);
+
+            BtnDelete(addressName).Click();
+        }
+
+        public void ConfirmDestruction()
+        {
+            driver.SwitchTo().Alert().Accept();
+        }
+
+        public void DismissDestruction()
+        {
+            driver.SwitchTo().Alert().Dismiss();
         }
     }
 }

@@ -1149,6 +1149,286 @@ In order to make the assert, we need to add another element in the **AddressDeta
 ```
 <br>
 <br>
+
+### **Session 7 – 23.05.2022**
+
+**Scope:** This session scope is to work with the delete functionality in the automation script, but also to handle the page menu.
+
+First of all, we will start with the delete functionality, but without confirming the actual deletion. Upon the confirmation, we will select the cancel option, but we will learn how to interact with browser alerts.
+
+In the AddressesPage.cs, we have to add the web elements for the delete („Destroy”) address button and the methods needed for the delete actions.
+
+After clicking on the delete button, an alert appears. Selenium Webdriver manipulate (accept/dismiss/get text) the alert and dismiss it in our case.
+
+```csharp
+            private By DeleteAddress = By.CssSelector("a[data-test*=destroy]");
+            public IWebElement BtnDelete(string addressName) => LstAddresses
+                .FirstOrDefault(element => element.Text.Contains(addressName))
+                .FindElement(DeleteAddress);
+
+            public void ConfirmDestruction()
+            {
+                driver.SwitchTo().Alert().Accept();
+            }
+
+            public void DismissDestruction()
+            {
+                driver.SwitchTo().Alert().Dismiss();
+            }
+
+            public void DestroyAddress(string addressName)
+            {
+                WaitHelpers.WaitForElementToBeVisible(driver, DeleteAddress);
+
+                BtnDelete(addressName).Click();
+            }
+```
+
+Let’s move to AddressTests.cs and write the test:
+
+```csharp
+            [TestMethod]
+            public void User_Should_Dismiss_Destroying_An_Address()
+            {
+                var addressToBeRemoved = "AC First Name1 edit 1";
+
+                addressesPage.DestroyAddress(addressToBeRemoved);
+                addressesPage.DismissDestruction();
+
+                Assert.IsTrue(addressesPage.BtnDelete(addressToBeDeleted).Displayed);
+            }
+```
+
+Now, we will continue working with the menu. It is present in all the app pages, and we need to create a single repository where the menu elements can be stored. This is a shared component and we need to call it in all of our page objects. 
+The first step is to create a new „Shared” folder and, after that, a class named MenuItemControl.cs. This class will contain all menu elements.
+
+```csharp
+        using OpenQA.Selenium;
+
+        namespace ACAutomation
+        {
+            public class MenuItemControl
+            {
+                public IWebDriver driver;
+
+                public MenuItemControl(IWebDriver browser)
+                {
+                    driver = browser;
+                }
+
+                private By Home = By.CssSelector("");
+                private IWebElement BtnHome => driver.FindElement(Home);
+
+                private By SignIn = By.CssSelector("");
+                private IWebElement BtnSignIn => driver.FindElement(SignIn);
+
+                private By SignOut = By.CssSelector("");
+                private IWebElement BtnSignOut => driver.FindElement(SignOut);
+
+                private By Addresses = By.CssSelector("");
+                private IWebElement BtnAddresses => driver.FindElement(Addresses);
+
+                private By UserEmail = By.XPath("//span[@data-test='current-user']");
+                private IWebElement LblUserEmail => driver.FindElement(UserEmail);
+            }
+        }
+```
+
+The application has 2 contexts, but this menu cannot be used from both perspectives: logged out and logged in. Let's identify the elements used in these contexts: 
+1.	logged out: Home, Sign in
+2.	logged in: Home, Addresses, Sign out and User email 
+
+The common WebElement for both contextes is Home. Now that we have identified what we have, we need to create 2 classes for out contexes: LoggedOutMenuItemControl and LoggedInMenuItemControl that will inherit the MenuItemControlClass. Also, we need to move the elements to the according classes and the navigation logic.
+
+```csharp
+        using OpenQA.Selenium;
+
+        namespace ACAutomation.PageObjects
+        {
+            public class MenuItemControlLoggedOut : MenuItemControl
+            {
+                public IWebDriver driver;
+
+                public MenuItemControlLoggedOut(IWebDriver browser) : base(browser)
+                {
+                    driver = browser;
+                }
+
+                private By SignIn = By.Id("sign-in");
+                private IWebElement BtnSignIn => driver.FindElement(SignIn);
+
+                public LoginPage NavigateToLoginPage()
+                {
+                    BtnSignIn.Click();
+
+                    return new LoginPage(driver);
+                }
+            }
+        }
+```
+
+```csharp
+        using OpenQA.Selenium;
+
+        namespace ACAutomation
+        {
+            public class MenuItemControl
+            {
+                public IWebDriver driver;
+
+                public MenuItemControl(IWebDriver browser)
+                {
+                    driver = browser;
+                }
+
+                private By Home = By.CssSelector("");
+                private IWebElement BtnHome => driver.FindElement(Home);
+            }
+        }
+```
+
+```csharp
+        using OpenQA.Selenium;
+
+        namespace ACAutomation.PageObjects
+        {
+            public class MenuItemControlLoggedIn : MenuItemControl
+            {
+                public IWebDriver driver;
+
+                public MenuItemControlLoggedIn(IWebDriver browser) : base(browser)
+                {
+                    driver = browser;
+                }
+
+                private By SignOut = By.CssSelector("");
+                private IWebElement BtnSignOut => driver.FindElement(SignOut);
+
+                private By Addresses = By.CssSelector("");
+                private IWebElement BtnAddresses => driver.FindElement(Addresses);
+
+                private By UserEmail = By.XPath("//span[@data-test='current-user']");
+                private IWebElement LblUserEmail => driver.FindElement(UserEmail);
+
+                public string UserEmailText => LblUserEmail.Text;
+            }
+        }
+```
+
+We will continue by making the changes in the LoginPage.cs, HomePage.cs and LoginTests.cs
+
+```csharp
+        public class LoginPage
+            {
+                private IWebDriver driver;
+
+                // reference the menu item control
+                public MenuItemControlLoggedOut menuItemControl => new MenuItemControlLoggedOut (driver);
+
+                public LoginPage(IWebDriver browser)
+                {
+                    driver = browser;
+                }
+        ....
+        }
+```
+
+```csharp
+        using ACAutomation.Helpers;
+        using OpenQA.Selenium;
+
+        namespace ACAutomation.PageObjects
+        {
+            public class HomePage
+            {
+                private IWebDriver driver;
+
+                // reference the menu item control
+                public MenuItemControlLoggedIn menuItemControl => new MenuItemControlLoggedIn (driver);
+
+                public HomePage(IWebDriver browser)
+                {
+                    driver = browser;
+                }
+
+                public AddressesPage NavigateToAddressesPage()
+                {
+                    WaitHelpers.WaitForElementToBeVisible(driver, menuItemControl.Addresses);
+                    menuItemControl.BtnAddresses.Click();
+
+                    return new AddressesPage(driver);
+                }
+            }
+        }
+  ```
+
+```csharp
+        using ACAutomation.PageObjects;
+        using Microsoft.VisualStudio.TestTools.UnitTesting;
+        using OpenQA.Selenium;
+        using OpenQA.Selenium.Chrome;
+        using System;
+
+        namespace ACAutomation
+        {
+            [TestClass]
+            public class LoginTests
+            {
+                private IWebDriver driver;
+                private LoginPage loginPage;
+
+                [TestInitialize]
+                public void TestInitialize()
+                {
+                    driver = new ChromeDriver();
+                    loginPage = new LoginPage(driver);
+
+                    driver.Manage().Window.Maximize();
+                    driver.Navigate().GoToUrl("http://a.testaddressbook.com/");
+
+                    loginPage.menuItemControl.NavigateToLoginPage();
+                }
+
+                [TestMethod]
+                public void User_Should_Login_Successfully()
+                {
+                    loginPage.LoginApplication("test@test.test", "test");
+
+                    var homePage = new HomePage(driver);
+
+                    Assert.IsTrue(homePage.menuItemControl.UserEmailText.Equals("test@test.test"));
+                }
+
+                [TestMethod]
+                public void User_Should_Fail_Login_With_WrongEmail()
+                {
+                    loginPage.LoginApplication("test@test.testWrong", "test");
+
+                    Assert.AreEqual("Bad email or password.", loginPage.ErrorMessage);
+                }
+
+                [TestMethod]
+                public void User_Should_Fail_Login_With_WrongPassword()
+                {
+                    loginPage.LoginApplication("test@test.test", "testWrong");
+
+                    Assert.AreEqual("Bad email or password.", loginPage.ErrorMessage);
+                }
+
+                [TestCleanup]
+                public void TestCleanup()
+                {
+                    driver.Quit();
+                }
+            }
+        }
+```
+
+Note: Depending on the needs, some IWebElements need to be made public instead of private -> check them in the final commit.
+
+
+<br>
+<br>
 <br>
 <br>
 <br>

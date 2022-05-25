@@ -1,4 +1,5 @@
 ﻿using ACAutomation.PageObjects;
+using ACAutomation.Shared;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
@@ -12,6 +13,7 @@ namespace ACAutomation
         private IWebDriver driver;
         private LoginPage loginPage;
 
+
         [TestInitialize]
         public void TestInitialize()
         {
@@ -21,11 +23,7 @@ namespace ACAutomation
             driver.Manage().Window.Maximize();
             driver.Navigate().GoToUrl("http://a.testaddressbook.com/");
 
-            var btnSignIn = driver.FindElement(By.Id("sign-in"));
-            btnSignIn.Click();
-
-            // implicit wait
-            driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(1);
+            loginPage.menuItemControl.NavigateToLoginPage();
         }
 
         [TestMethod]
@@ -33,7 +31,9 @@ namespace ACAutomation
         {
             loginPage.LoginApplication("test@test.test", "test");
 
-            Assert.IsTrue(driver.FindElement(By.XPath("//span[@data-test='current-user']")).Text.Equals("test@test.test"));
+            var homePage = new HomePage(driver);
+
+            Assert.IsTrue(homePage.menuItemControl.UserEmailText.Equals("test@test.test"));
         }
 
         [TestMethod]

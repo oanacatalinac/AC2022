@@ -69,6 +69,9 @@
     <Compile Include="PageObjects\InputDataBO\AddAddressBO.cs" />
     <Compile Include="PageObjects\LoginPage.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Shared\MenuItemControl.cs" />
+    <Compile Include="Shared\MenuItemControlLoggedIn.cs" />
+    <Compile Include="Shared\MenuItemControlLoggedOut.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

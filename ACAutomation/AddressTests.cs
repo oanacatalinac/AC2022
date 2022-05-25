@@ -70,7 +70,18 @@ namespace ACAutomation
             Assert.AreEqual("Address was successfully updated.", addressDetailsPage.NoticeText);
         }
 
-        [TestCleanup]
+        [TestMethod]
+        public void User_Should_Dismiss_Destroying_An_Address()
+        {
+            var addressToBeRemoved = "Pretty please don't edit/delete";
+
+            addressesPage.DestroyAddress(addressToBeRemoved);
+            addressesPage.DismissDestruction();
+
+            Assert.IsTrue(addressesPage.BtnDelete(addressToBeRemoved).Displayed);
+        }
+
+            [TestCleanup]
         public void TestCleanup()
         {
             driver.Quit();

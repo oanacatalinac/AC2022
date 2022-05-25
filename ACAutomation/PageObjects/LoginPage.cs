@@ -1,4 +1,5 @@
 ﻿using ACAutomation.Helpers;
+using ACAutomation.Shared;
 using OpenQA.Selenium;
 
 namespace ACAutomation.PageObjects
@@ -6,6 +7,9 @@ namespace ACAutomation.PageObjects
     public class LoginPage
     {
         private IWebDriver driver;
+
+        // reference the menu item control
+        public MenuItemControlLoggedOut menuItemControl => new MenuItemControlLoggedOut(driver);
 
         public LoginPage(IWebDriver browser)
         {

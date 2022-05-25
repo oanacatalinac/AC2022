@@ -1,4 +1,5 @@
 ﻿using ACAutomation.Helpers;
+using ACAutomation.Shared;
 using OpenQA.Selenium;
 
 namespace ACAutomation.PageObjects
@@ -7,18 +8,18 @@ namespace ACAutomation.PageObjects
     {
         private IWebDriver driver;
 
+        // reference the menu item control
+        public MenuItemControlLoggedIn menuItemControl => new MenuItemControlLoggedIn(driver);
+
         public HomePage(IWebDriver browser)
         {
             driver = browser;
         }
 
-        private By Addresses = By.CssSelector("a[data-test=addresses]");
-        private IWebElement BtnAddresses => driver.FindElement(Addresses);
-
         public AddressesPage NavigateToAddressesPage()
         {
-            WaitHelpers.WaitForElementToBeVisible(driver, Addresses);
-            BtnAddresses.Click();
+            WaitHelpers.WaitForElementToBeVisible(driver, menuItemControl.Addresses);
+            menuItemControl.BtnAddresses.Click();
 
             return new AddressesPage(driver);
         }
